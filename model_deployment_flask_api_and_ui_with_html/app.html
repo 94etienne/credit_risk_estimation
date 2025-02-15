@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Prediction Credit Risk Estimation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 60%; /* Increased width for two columns */
+        }
+
+        h1 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            display: flex;
+            gap: 20px; /* Space between columns */
+        }
+
+        .form-column {
+            flex: 1; /* Each column takes equal width */
+        }
+
+        label {
+            font-size: 1em;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Model Prediction Credit Risk Estimation</h1>
+        <form id="prediction-form">
+            <div class="form-container">
+                <!-- Left Column -->
+                <div class="form-column">
+                    <!-- Numerical Inputs -->
+                    <label for="person_age">Age:</label>
+                    <input type="number" id="person_age" name="person_age" placeholder="Enter age" required>
+
+                    <label for="person_income">Income:</label>
+                    <input type="number" id="person_income" name="person_income" placeholder="Enter income" required>
+
+                    <label for="person_emp_length">Employment Length:</label>
+                    <input type="number" id="person_emp_length" name="person_emp_length" placeholder="Enter employment length" required>
+
+                    <label for="loan_amnt">Loan Amount:</label>
+                    <input type="number" id="loan_amnt" name="loan_amnt" placeholder="Enter loan amount" required>
+
+                    <label for="loan_percent_income">Loan Percent Income:</label>
+                    <input type="number" id="loan_percent_income" name="loan_percent_income" placeholder="Enter loan percent income" required>
+                </div>
+
+                <!-- Right Column -->
+                <div class="form-column">
+                    <!-- Categorical Inputs -->
+                    <label for="cb_person_default_on_file">Default on File:</label>
+                    <select id="cb_person_default_on_file" name="cb_person_default_on_file" required>
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                    </select>
+
+                    <label for="person_home_ownership">Home Ownership:</label>
+                    <select id="person_home_ownership" name="person_home_ownership" required>
+                        <option value="OTHER">Other</option>
+                        <option value="OWN">Own</option>
+                        <option value="RENT">Rent</option>
+                    </select>
+
+                    <label for="loan_intent">Loan Intent:</label>
+                    <select id="loan_intent" name="loan_intent" required>
+                        <option value="DEBTCONSOLIDATION">Debt Consolidation</option>
+                        <option value="EDUCATION">Education</option>
+                        <option value="HOMEIMPROVEMENT">Home Improvement</option>
+                        <option value="MEDICAL">Medical</option>
+                        <option value="PERSONAL">Personal</option>
+                        <option value="VENTURE">Venture</option>
+                    </select>
+
+                    <label for="loan_grade">Loan Grade:</label>
+                    <select id="loan_grade" name="loan_grade" required>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                        <option value="F">F</option>
+                        <option value="G">G</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="button" onclick="makePrediction()">Submit</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function makePrediction() {
+            // Collect input values
+            const person_age = parseFloat(document.getElementById("person_age").value);
+            const person_income = parseFloat(document.getElementById("person_income").value);
+            const person_emp_length = parseFloat(document.getElementById("person_emp_length").value);
+            const loan_amnt = parseFloat(document.getElementById("loan_amnt").value);
+            const loan_percent_income = parseFloat(document.getElementById("loan_percent_income").value);
+            const cb_person_default_on_file = parseInt(document.getElementById("cb_person_default_on_file").value);
+
+            // One-hot encode categorical variables
+            const person_home_ownership = document.getElementById("person_home_ownership").value;
+            const loan_intent = document.getElementById("loan_intent").value;
+            const loan_grade = document.getElementById("loan_grade").value;
+
+            const person_home_ownership_OTHER = person_home_ownership === "OTHER" ? 1 : 0;
+            const person_home_ownership_OWN = person_home_ownership === "OWN" ? 1 : 0;
+            const person_home_ownership_RENT = person_home_ownership === "RENT" ? 1 : 0;
+
+            const loan_intent_DEBTCONSOLIDATION = loan_intent === "DEBTCONSOLIDATION" ? 1 : 0;
+            const loan_intent_EDUCATION = loan_intent === "EDUCATION" ? 1 : 0;
+            const loan_intent_HOMEIMPROVEMENT = loan_intent === "HOMEIMPROVEMENT" ? 1 : 0;
+            const loan_intent_MEDICAL = loan_intent === "MEDICAL" ? 1 : 0;
+            const loan_intent_PERSONAL = loan_intent === "PERSONAL" ? 1 : 0;
+            const loan_intent_VENTURE = loan_intent === "VENTURE" ? 1 : 0;
+
+            const loan_grade_A = loan_grade === "A" ? 1 : 0;
+            const loan_grade_B = loan_grade === "B" ? 1 : 0;
+            const loan_grade_C = loan_grade === "C" ? 1 : 0;
+            const loan_grade_D = loan_grade === "D" ? 1 : 0;
+            const loan_grade_E = loan_grade === "E" ? 1 : 0;
+            const loan_grade_F = loan_grade === "F" ? 1 : 0;
+            const loan_grade_G = loan_grade === "G" ? 1 : 0;
+
+            // Prepare data for API request
+            const data = {
+                person_age,
+                person_income,
+                person_emp_length,
+                loan_amnt,
+                loan_percent_income,
+                cb_person_default_on_file,
+                person_home_ownership_OTHER,
+                person_home_ownership_OWN,
+                person_home_ownership_RENT,
+                loan_intent_DEBTCONSOLIDATION,
+                loan_intent_EDUCATION,
+                loan_intent_HOMEIMPROVEMENT,
+                loan_intent_MEDICAL,
+                loan_intent_PERSONAL,
+                loan_intent_VENTURE,
+                loan_grade_A,
+                loan_grade_B,
+                loan_grade_C,
+                loan_grade_D,
+                loan_grade_E,
+                loan_grade_F,
+                loan_grade_G
+            };
+
+            try {
+                // Send request to the API
+                const response = await fetch("http://127.0.0.1:5000/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                // Handle response
+                if (response.ok) {
+                    const result = await response.json();
+                    const predictionMessage = result.prediction === 0 
+                        ? "0: Customer will pay the loan" 
+                        : "1: Customer will not pay the loan";
+                    document.getElementById("result").innerText = "Prediction: " + predictionMessage;
+                }
+                
+            } catch (error) {
+                document.getElementById("result").innerText = "Error: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
